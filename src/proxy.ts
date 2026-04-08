@@ -31,8 +31,8 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // 로그인 필요한 라우트: /dashboard/*
-  if (!user && pathname.startsWith('/dashboard')) {
+  // 로그인 필요한 라우트: /dashboard/*, /settings
+  if (!user && (pathname.startsWith('/dashboard') || pathname.startsWith('/settings'))) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
