@@ -147,11 +147,6 @@ function LoginForm() {
           </p>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-400">
-          <Link href="/upload" className="hover:text-gray-600">
-            로그인 없이 계속하기 →
-          </Link>
-        </p>
       </div>
     </div>
   )

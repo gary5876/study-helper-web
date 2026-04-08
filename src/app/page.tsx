@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
   title: '공부 도우미 — PDF로 AI 학습 노트·문제 자동 생성',
@@ -21,26 +22,20 @@ const steps = [
 
 const plans = [
   {
-    name: '무료',
-    price: '₩0',
-    desc: 'Gemini AI 사용',
-    features: ['PDF 업로드 무제한', 'AI 학습 노트 생성', '객관식 · 빈칸 문제', '간격 반복 복습'],
-    cta: '무료로 시작',
-    href: '/upload',
-    highlight: false,
-  },
-  {
     name: 'API 키',
     price: '내 키 사용',
     desc: 'Claude / GPT / TimelyGPT',
-    features: ['무료 플랜 모든 기능', '더 높은 품질의 생성', 'Claude · GPT · TimelyGPT 선택', '빠른 처리 속도'],
-    cta: '내 API 키로 시작',
-    href: '/upload',
+    features: ['PDF 업로드 무제한', 'AI 학습 노트 생성', '객관식 · 빈칸 문제', '간격 반복 복습', '더 높은 품질의 생성', 'Claude · GPT · TimelyGPT 선택', '빠른 처리 속도'],
+    cta: '앱에서 시작하기',
+    href: '/login',
     highlight: true,
   },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
   return (
     <div className="font-[family-name:var(--font-geist)]">
       {/* 네비게이션 */}
@@ -48,15 +43,26 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
           <span className="text-lg font-bold text-indigo-600">공부 도우미</span>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              로그인
-            </Link>
-            <Link
-              href="/upload"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              무료로 시작
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                대시보드
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  로그인
+                </Link>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  시작하기
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -76,19 +82,12 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/upload"
+              href={user ? '/dashboard' : '/login'}
               className="px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
             >
-              지금 무료로 시작하기 →
-            </Link>
-            <Link
-              href="/login"
-              className="px-8 py-3.5 border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-            >
-              로그인
+              {user ? '대시보드로 이동 →' : '시작하기 →'}
             </Link>
           </div>
-          <p className="mt-4 text-xs text-gray-400">신용카드 불필요 · 회원가입 없이도 사용 가능</p>
         </div>
       </section>
 
@@ -130,7 +129,7 @@ export default function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-4">플랜 선택</h2>
-          <p className="text-center text-gray-500 mb-12">모든 기능을 무료로 사용할 수 있습니다</p>
+          <p className="text-center text-gray-500 mb-12">API 키를 등록하고 모든 기능을 사용하세요</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {plans.map(p => (
               <div
@@ -167,12 +166,14 @@ export default function LandingPage() {
       <section className="py-20 px-4 bg-indigo-600 text-white text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">지금 바로 시작해보세요</h2>
-          <p className="text-indigo-200 mb-8">회원가입 없이도 바로 사용할 수 있습니다</p>
+          <p className="text-indigo-200 mb-8">
+            {user ? 'API 키를 등록하고 바로 PDF를 업로드하세요' : '로그인 후 API 키를 등록하고 바로 시작할 수 있습니다'}
+          </p>
           <Link
-            href="/upload"
+            href={user ? '/dashboard' : '/login'}
             className="inline-block px-8 py-3.5 bg-white text-indigo-600 rounded-xl font-medium hover:bg-indigo-50 transition-colors"
           >
-            PDF 업로드하기 →
+            {user ? '대시보드로 이동 →' : '로그인하기 →'}
           </Link>
         </div>
       </section>

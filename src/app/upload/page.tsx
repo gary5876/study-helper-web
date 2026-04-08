@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { getPlan, getApiKey, getModel } from '@/lib/apiSettings'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? ''
 
@@ -18,6 +19,12 @@ export default function UploadPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [dragging, setDragging] = useState(false)
 
+  useEffect(() => {
+    if (!getPlan() || !getApiKey()) {
+      router.replace('/setup')
+    }
+  }, [router])
+
   async function processFile(file: File) {
     if (!file.name.endsWith('.pdf')) {
       setErrorMsg('PDF 파일만 업로드 가능합니다.')
@@ -30,6 +37,14 @@ export default function UploadPage() {
       return
     }
 
+    const plan = getPlan()
+    const apiKey = getApiKey()
+    if (!plan || !apiKey) {
+      router.replace('/setup')
+      return
+    }
+    const model = getModel(plan)
+
     setStage('uploading')
     setProgress(0)
 
@@ -38,12 +53,15 @@ export default function UploadPage() {
 
     const form = new FormData()
     form.append('file', file)
-    form.append('plan', 'free')
+    form.append('plan', plan)
 
     try {
       const res = await fetch(`${BACKEND_URL}/upload`, {
         method: 'POST',
-        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+        headers: {
+          'X-API-Key': apiKey,
+          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: form,
       })
       if (!res.ok) {
@@ -54,18 +72,17 @@ export default function UploadPage() {
       const sid = data.session_id
       setSessionId(sid)
 
-      // 생성 시작
       setStage('generating')
       await fetch(`${BACKEND_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
           ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ session_id: sid, plan: 'free' }),
+        body: JSON.stringify({ session_id: sid, plan, options: { model } }),
       })
 
-      // 폴링
       await pollStatus(sid)
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : '오류가 발생했습니다')
@@ -102,8 +119,11 @@ export default function UploadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
+        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="text-xl font-bold text-indigo-600">공부 도우미</Link>
+          <Link href="/setup" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+            API 키 설정
+          </Link>
         </div>
       </header>
 
@@ -187,12 +207,20 @@ export default function UploadPage() {
             <div className="text-5xl mb-4">❌</div>
             <p className="font-medium text-red-600 mb-2">오류가 발생했습니다</p>
             <p className="text-sm text-gray-500 mb-6">{errorMsg}</p>
-            <button
-              onClick={() => { setStage('idle'); setErrorMsg('') }}
-              className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
-            >
-              다시 시도
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => { setStage('idle'); setErrorMsg('') }}
+                className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
+              >
+                다시 시도
+              </button>
+              <Link
+                href="/setup"
+                className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                API 키 확인
+              </Link>
+            </div>
           </div>
         )}
       </main>
