@@ -95,7 +95,7 @@ export default function SessionList() {
             </span>
             {s.status === 'complete' && (
               <Link
-                href={`/upload?session=${s.id}`}
+                href={`/study/${s.id}`}
                 className="text-xs text-indigo-600 font-medium hover:underline"
               >
                 학습하기
