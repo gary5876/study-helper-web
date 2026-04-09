@@ -63,7 +63,7 @@ export default function MCQCard({ question: q, current, total, onAnswer, onNext,
     }
     if (opt === q.correct_answer) return `${base} border-green-400 bg-green-50 text-green-800`
     if (opt === selected) return `${base} border-red-400 bg-red-50 text-red-800`
-    return `${base} border-gray-100 bg-gray-50 text-gray-400 opacity-60`
+    return `${base} border-gray-100 bg-gray-50 text-gray-500 opacity-70`
   }
 
   return (

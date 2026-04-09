@@ -106,7 +106,7 @@ export default function FillCard({ question: q, current, total, onAnswer, onNext
       {/* Sentence with blank */}
       <p className="text-base leading-relaxed text-gray-800">
         {parts[0]}
-        <span className="inline-block mx-1 px-3 py-0.5 rounded bg-indigo-100 text-indigo-400 font-bold tracking-widest">___</span>
+        <span className="inline-block mx-1 px-3 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold tracking-widest border-b-2 border-indigo-400">___</span>
         {parts[1] ?? ''}
       </p>
 
@@ -134,7 +134,7 @@ export default function FillCard({ question: q, current, total, onAnswer, onNext
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="답을 입력하세요…"
-            className="flex-1 border-2 border-indigo-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
+            className="flex-1 border-2 border-indigo-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500"
             autoComplete="off"
           />
           <button
