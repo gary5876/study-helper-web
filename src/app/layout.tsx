@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Geist } from 'next/font/google'
 import './globals.css'
+import { LangProvider } from '@/lib/i18n'
+import { ThemeProvider } from '@/lib/theme'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 
@@ -18,7 +20,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" className={geist.variable}>
-      <body className="min-h-screen bg-white antialiased">{children}</body>
+      <body className="min-h-screen bg-white antialiased">
+        <ThemeProvider>
+          <LangProvider>{children}</LangProvider>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }

@@ -8,7 +8,8 @@ import { getPlan, getApiKey, getModel } from '@/lib/apiSettings'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? ''
 
-type Stage = 'idle' | 'uploading' | 'generating' | 'done' | 'error'
+type Subject = { id: string; name: string; color: string }
+type Stage = 'idle' | 'subject_select' | 'uploading' | 'generating' | 'done' | 'error'
 
 export default function UploadPage() {
   const router = useRouter()
@@ -18,14 +19,75 @@ export default function UploadPage() {
   const [sessionId, setSessionId] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
   const [dragging, setDragging] = useState(false)
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [showNewSubject, setShowNewSubject] = useState(false)
+  const [newSubjectName, setNewSubjectName] = useState('')
 
   useEffect(() => {
     if (!getPlan() || !getApiKey()) {
       router.replace('/setup')
+      return
     }
+    // Load subjects
+    async function loadSubjects() {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      try {
+        const res = await fetch(`${BACKEND_URL}/user/subjects`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        })
+        if (res.ok) setSubjects(await res.json())
+      } catch { /* ignore */ }
+    }
+    loadSubjects()
   }, [router])
 
-  async function processFile(file: File) {
+  function handleFileSelected(file: File) {
+    if (!file.name.endsWith('.pdf')) {
+      setErrorMsg('PDF 파일만 업로드 가능합니다.')
+      setStage('error')
+      return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setErrorMsg('파일 크기가 20MB를 초과합니다.')
+      setStage('error')
+      return
+    }
+    setPendingFile(file)
+    setStage('subject_select')
+  }
+
+  async function handleConfirmSubject() {
+    if (!pendingFile) return
+    let subjectId = selectedSubjectId
+
+    // Create new subject if needed
+    if (showNewSubject && newSubjectName.trim()) {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        try {
+          const res = await fetch(`${BACKEND_URL}/user/subjects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+            body: JSON.stringify({ name: newSubjectName.trim(), color: '#6c63ff' }),
+          })
+          if (res.ok) {
+            const created = await res.json()
+            subjectId = created.id
+            setSubjects(prev => [...prev, created])
+          }
+        } catch { /* ignore */ }
+      }
+    }
+
+    processFile(pendingFile, subjectId)
+  }
+
+  async function processFile(file: File, subjectId?: string | null) {
     if (!file.name.endsWith('.pdf')) {
       setErrorMsg('PDF 파일만 업로드 가능합니다.')
       setStage('error')
@@ -54,6 +116,7 @@ export default function UploadPage() {
     const form = new FormData()
     form.append('file', file)
     form.append('plan', plan)
+    if (subjectId) form.append('subject_id', subjectId)
 
     try {
       const res = await fetch(`${BACKEND_URL}/upload`, {
@@ -113,7 +176,7 @@ export default function UploadPage() {
     e.preventDefault()
     setDragging(false)
     const file = e.dataTransfer.files[0]
-    if (file) processFile(file)
+    if (file) handleFileSelected(file)
   }, [])
 
   return (
@@ -149,8 +212,81 @@ export default function UploadPage() {
               type="file"
               accept=".pdf"
               className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) processFile(f) }}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSelected(f) }}
             />
+          </div>
+        )}
+
+        {stage === 'subject_select' && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-8">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">어떤 과목인가요?</h2>
+            <p className="text-sm text-gray-500 mb-6">과목을 선택하거나 새로 만드세요.</p>
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              <button
+                onClick={() => { setSelectedSubjectId(null); setShowNewSubject(false) }}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  selectedSubjectId === null && !showNewSubject
+                    ? 'bg-gray-600 text-white'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                미분류
+              </button>
+              {subjects.map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => { setSelectedSubjectId(sub.id); setShowNewSubject(false) }}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    selectedSubjectId === sub.id
+                      ? 'text-white'
+                      : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-400'
+                  }`}
+                  style={selectedSubjectId === sub.id ? { backgroundColor: sub.color } : undefined}
+                >
+                  <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: sub.color }} />
+                  {sub.name}
+                </button>
+              ))}
+              <button
+                onClick={() => { setShowNewSubject(true); setSelectedSubjectId(null) }}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border border-dashed ${
+                  showNewSubject
+                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                    : 'border-indigo-300 text-indigo-600 hover:bg-indigo-50'
+                }`}
+              >
+                + 새 과목
+              </button>
+            </div>
+
+            {showNewSubject && (
+              <input
+                type="text"
+                value={newSubjectName}
+                onChange={e => setNewSubjectName(e.target.value)}
+                placeholder="과목명 입력..."
+                maxLength={30}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                autoFocus
+              />
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setStage('idle'); setPendingFile(null); setShowNewSubject(false); setNewSubjectName('') }}
+                className="px-5 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmSubject}
+                disabled={showNewSubject && !newSubjectName.trim()}
+                className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                생성 시작
+              </button>
+            </div>
           </div>
         )}
 

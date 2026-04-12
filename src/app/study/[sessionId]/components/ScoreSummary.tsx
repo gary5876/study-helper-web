@@ -9,6 +9,8 @@ interface Props {
   mode: StudyMode
   sessionId: string
   onRetry: () => void
+  hasWrongAnswers?: boolean
+  onReviewWrong?: () => void
 }
 
 const MODE_LABEL: Record<StudyMode, string> = {
@@ -31,7 +33,7 @@ function scoreToGrade(pct: number): string {
   return 'F'
 }
 
-export default function ScoreSummary({ correct, total, mode, sessionId, onRetry }: Props) {
+export default function ScoreSummary({ correct, total, mode, sessionId, onRetry, hasWrongAnswers, onReviewWrong }: Props) {
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
   const grade = scoreToGrade(pct)
   const gradeColor = pct >= 80 ? 'text-green-600' : pct >= 60 ? 'text-orange-500' : 'text-red-600'
@@ -56,6 +58,14 @@ export default function ScoreSummary({ correct, total, mode, sessionId, onRetry 
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 w-full">
+        {hasWrongAnswers && onReviewWrong && (
+          <button
+            onClick={onReviewWrong}
+            className="flex-1 py-3 rounded-xl bg-red-500 text-white font-semibold text-sm hover:bg-red-600 transition-colors"
+          >
+            오답 복습
+          </button>
+        )}
         <button
           onClick={onRetry}
           className="flex-1 py-3 rounded-xl border-2 border-indigo-500 text-indigo-600 font-semibold text-sm hover:bg-indigo-50 transition-colors"
