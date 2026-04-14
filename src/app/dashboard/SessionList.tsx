@@ -29,17 +29,21 @@ function useStatusLabel() {
   return {
     pending: t.dashStatusPending,
     processing: t.dashStatusProcessing,
+    ready: t.dashStatusComplete,
     complete: t.dashStatusComplete,
     failed: t.dashStatusFailed,
   } as Record<string, string>
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  pending: 'bg-gray-100 text-gray-600',
+  pending: 'bg-yellow-100 text-yellow-700',
   processing: 'bg-yellow-100 text-yellow-700',
+  ready: 'bg-green-100 text-green-700',
   complete: 'bg-green-100 text-green-700',
   failed: 'bg-red-100 text-red-600',
 }
+
+const READY_STATUSES = new Set(['ready', 'complete'])
 
 const UNCATEGORIZED = '__uncategorized__'
 
@@ -102,6 +106,7 @@ export default function SessionList() {
       if (!fresh.some(s => s.status === 'pending' || s.status === 'processing')) {
         clearInterval(interval)
       }
+      // ready/complete/failed 이면 폴링 종료 조건 만족
     }, 3000)
 
     return () => { cancelled = true; clearInterval(interval) }
@@ -310,7 +315,7 @@ export default function SessionList() {
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${STATUS_COLOR[s.status] ?? STATUS_COLOR.pending}`}>
                     {STATUS_LABEL[s.status] ?? s.status}
                   </span>
-                  {s.status === 'complete' && (
+                  {READY_STATUSES.has(s.status) && (
                     <Link
                       href={`/study/${s.id}`}
                       className="text-xs text-indigo-600 font-medium hover:underline"
