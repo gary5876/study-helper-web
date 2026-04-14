@@ -41,8 +41,8 @@ export default function ScoreSummary({ correct, total, mode, sessionId, onRetry,
 
   return (
     <div className="max-w-lg mx-auto py-10 px-4 flex flex-col gap-6 items-center text-center">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 w-full flex flex-col items-center gap-4">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+      <div className="bg-white text-gray-900 rounded-2xl border border-gray-100 shadow-sm p-8 w-full flex flex-col items-center gap-4">
+        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
           {MODE_LABEL[mode]} 결과
         </p>
         <p className={`text-6xl font-bold ${gradeColor}`}>{grade}</p>

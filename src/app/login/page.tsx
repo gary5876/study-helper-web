@@ -100,7 +100,7 @@ function LoginForm() {
 
           <div className="my-6 flex items-center gap-3">
             <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-xs text-gray-400">또는</span>
+            <span className="text-xs text-gray-500">또는</span>
             <div className="flex-1 h-px bg-gray-100" />
           </div>
 

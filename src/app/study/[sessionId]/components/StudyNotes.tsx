@@ -57,7 +57,7 @@ export default function StudyNotes({ notes, onStartQuiz }: Props) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4 flex flex-col gap-8">
+    <div className="max-w-2xl mx-auto py-6 px-4 flex flex-col gap-8 text-gray-900">
       {/* Key Concepts */}
       <section>
         <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">핵심 개념</h2>
@@ -78,7 +78,7 @@ export default function StudyNotes({ notes, onStartQuiz }: Props) {
 
         {/* Concept Detail */}
         {selectedConcept && (
-          <div className="mt-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+          <div className="mt-3 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-gray-900">{selectedConcept.term}</h3>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -90,7 +90,7 @@ export default function StudyNotes({ notes, onStartQuiz }: Props) {
             <p className="text-sm text-gray-600 leading-relaxed">{selectedConcept.definition}</p>
             <button
               onClick={() => setSelectedConcept(null)}
-              className="text-xs text-gray-400 mt-2 hover:text-gray-600"
+              className="text-xs text-gray-600 mt-2 hover:text-gray-800"
             >
               닫기
             </button>
@@ -105,13 +105,13 @@ export default function StudyNotes({ notes, onStartQuiz }: Props) {
           {notes.sections.map((sec, i) => {
             const isOpen = expandedSections.has(i)
             return (
-              <div key={i} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+              <div key={i} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <button
                   onClick={() => toggleSection(i)}
                   className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
                 >
                   <span className="font-medium text-gray-900">{sec.title}</span>
-                  <span className="text-gray-400 text-sm">{isOpen ? '▲' : '▼'}</span>
+                  <span className="text-gray-600 text-sm">{isOpen ? '▲' : '▼'}</span>
                 </button>
                 {isOpen && (
                   <div className="px-4 pb-4 border-t border-gray-50">
@@ -135,7 +135,7 @@ export default function StudyNotes({ notes, onStartQuiz }: Props) {
       {notes.glossary.length > 0 && (
         <section>
           <h2 className="text-lg font-bold text-gray-900 mb-3">용어집</h2>
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
             {notes.glossary.map((entry, i) => (
               <div key={i} className="px-4 py-3">
                 <span className="font-medium text-gray-900">{entry.term}</span>

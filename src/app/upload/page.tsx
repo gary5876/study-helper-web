@@ -186,7 +186,7 @@ export default function UploadPage() {
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="text-xl font-bold text-indigo-600">공부 도우미</Link>
-          <Link href="/setup" className="text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          <Link href="/setup" className="text-xs text-gray-500 hover:text-gray-700 transition-colors">
             API 키 설정
           </Link>
         </div>
@@ -208,7 +208,7 @@ export default function UploadPage() {
           >
             <div className="text-5xl mb-4">📄</div>
             <p className="font-medium text-gray-700 mb-1">PDF를 드래그하거나 클릭해서 선택</p>
-            <p className="text-sm text-gray-400">최대 20MB · 최대 50페이지</p>
+            <p className="text-sm text-gray-600">최대 20MB · 최대 50페이지</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -298,7 +298,7 @@ export default function UploadPage() {
             <p className="font-medium text-gray-800 mb-1">
               {stage === 'uploading' ? 'PDF 업로드 중...' : 'AI가 학습 자료를 생성하고 있습니다...'}
             </p>
-            <p className="text-sm text-gray-400 mb-6">잠시만 기다려주세요 (보통 30초~2분)</p>
+            <p className="text-sm text-gray-500 mb-6">잠시만 기다려주세요 (보통 30초~2분)</p>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
                 className="bg-indigo-500 h-2 rounded-full transition-all duration-500"
@@ -306,7 +306,7 @@ export default function UploadPage() {
               />
             </div>
             {progress > 0 && (
-              <p className="text-xs text-gray-400 mt-2">{progress}%</p>
+              <p className="text-xs text-gray-500 mt-2">{progress}%</p>
             )}
           </div>
         )}

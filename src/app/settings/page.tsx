@@ -281,7 +281,7 @@ export default function SettingsPage() {
             <label className="block text-xs font-medium text-gray-500 mb-2">API Key</label>
             {apiKeySaved && !editingKey ? (
               <div className="flex items-center justify-between px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50">
-                <span className="text-gray-400 text-sm tracking-widest">●●●●●●●●●●●●  저장됨</span>
+                <span className="text-gray-600 text-sm tracking-widest">●●●●●●●●●●●●  저장됨</span>
                 <button
                   onClick={() => { setEditingKey(true); setApiKey('') }}
                   className="text-indigo-600 text-sm font-medium hover:underline ml-4"
@@ -302,7 +302,7 @@ export default function SettingsPage() {
             {apiKey.trim().length > 0 && !service.validate(apiKey.trim()) && (
               <p className="mt-1 text-xs text-amber-500">⚠ {service.validationMsg}</p>
             )}
-            <p className="mt-1.5 text-xs text-gray-400">{service.keyHint}</p>
+            <p className="mt-1.5 text-xs text-gray-500">{service.keyHint}</p>
           </div>
 
           {aiError && <p className="text-sm text-red-500">{aiError}</p>}

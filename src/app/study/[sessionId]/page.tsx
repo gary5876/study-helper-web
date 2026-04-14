@@ -180,7 +180,7 @@ export default function StudyPage() {
             {phase !== 'notes' && content?.notes && (
               <button
                 onClick={() => setPhase('notes')}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs text-gray-600 hover:text-gray-800"
               >
                 {t.studyNotes}
               </button>
@@ -188,7 +188,7 @@ export default function StudyPage() {
             {phase !== 'modeSelect' && phase !== 'score' && phase !== 'notes' && (
               <button
                 onClick={() => setPhase('modeSelect')}
-                className="text-xs text-gray-400 hover:text-gray-600"
+                className="text-xs text-gray-600 hover:text-gray-800"
               >
                 {t.studyChangeMode}
               </button>
@@ -259,7 +259,7 @@ export default function StudyPage() {
             >
               ← 복습으로 돌아가기
             </button>
-            <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+            <div className="bg-white text-gray-900 rounded-2xl border border-gray-100 p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900">{selectedConcept.term}</h2>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${

@@ -7,11 +7,6 @@
   --foreground: #171717;
 }
 
-.dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -34,5 +29,5 @@ select {
 
 input::placeholder,
 textarea::placeholder {
-  color: #9ca3af;
+  color: #6b7280;
 }

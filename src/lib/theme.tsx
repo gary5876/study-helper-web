@@ -16,10 +16,9 @@ function getStoredTheme(): Theme {
   return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'system'
 }
 
-function applyTheme(theme: Theme) {
+function applyTheme(_theme: Theme) {
   if (typeof document === 'undefined') return
-  const resolved = theme === 'system' ? getSystemTheme() : theme
-  document.documentElement.classList.toggle('dark', resolved === 'dark')
+  document.documentElement.classList.remove('dark')
 }
 
 interface ThemeContextType {

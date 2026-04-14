@@ -81,10 +81,10 @@ export default function FillCard({ question: q, current, total, onAnswer, onNext
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-4 shadow-sm">
+    <div className="bg-white text-gray-900 rounded-2xl border border-gray-100 p-5 flex flex-col gap-4 shadow-sm">
       {/* Progress + badges */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-gray-400 font-medium">{current} / {total}</span>
+        <span className="text-xs text-gray-600 font-medium">{current} / {total}</span>
         <div className="flex gap-2">
           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${levelStyle}`}>
             Lv.{q.level}
@@ -120,7 +120,7 @@ export default function FillCard({ question: q, current, total, onAnswer, onNext
         </button>
       )}
       {showHint && q.hint && (
-        <p className="text-xs text-gray-500 italic bg-yellow-50 rounded-lg px-3 py-2">
+        <p className="text-xs text-yellow-900 italic bg-yellow-50 rounded-lg px-3 py-2">
           💡 {q.hint}
         </p>
       )}
@@ -134,7 +134,7 @@ export default function FillCard({ question: q, current, total, onAnswer, onNext
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             placeholder="답을 입력하세요…"
-            className="flex-1 border-2 border-indigo-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-indigo-500"
+            className="flex-1 border-2 border-indigo-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 placeholder-gray-500 focus:outline-none focus:border-indigo-500"
             autoComplete="off"
           />
           <button

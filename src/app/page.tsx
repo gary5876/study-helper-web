@@ -136,9 +136,9 @@ export default async function LandingPage() {
                 key={p.name}
                 className={`rounded-2xl p-8 ${p.highlight ? 'bg-indigo-600 text-white' : 'border border-gray-200'}`}
               >
-                <p className={`text-sm font-medium mb-1 ${p.highlight ? 'text-indigo-200' : 'text-gray-500'}`}>{p.name}</p>
+                <p className={`text-sm font-medium mb-1 ${p.highlight ? 'text-indigo-100' : 'text-gray-500'}`}>{p.name}</p>
                 <p className={`text-3xl font-bold mb-1 ${p.highlight ? 'text-white' : 'text-gray-900'}`}>{p.price}</p>
-                <p className={`text-sm mb-6 ${p.highlight ? 'text-indigo-200' : 'text-gray-400'}`}>{p.desc}</p>
+                <p className={`text-sm mb-6 ${p.highlight ? 'text-indigo-100' : 'text-gray-600'}`}>{p.desc}</p>
                 <ul className="space-y-2 mb-8">
                   {p.features.map(f => (
                     <li key={f} className={`flex items-center gap-2 text-sm ${p.highlight ? 'text-indigo-100' : 'text-gray-600'}`}>
@@ -166,7 +166,7 @@ export default async function LandingPage() {
       <section className="py-20 px-4 bg-indigo-600 text-white text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">지금 바로 시작해보세요</h2>
-          <p className="text-indigo-200 mb-8">
+          <p className="text-indigo-100 mb-8">
             {user ? 'API 키를 등록하고 바로 PDF를 업로드하세요' : '로그인 후 API 키를 등록하고 바로 시작할 수 있습니다'}
           </p>
           <Link
@@ -179,7 +179,7 @@ export default async function LandingPage() {
       </section>
 
       {/* 푸터 */}
-      <footer className="py-8 px-4 border-t border-gray-100 text-center text-sm text-gray-400">
+      <footer className="py-8 px-4 border-t border-gray-100 text-center text-sm text-gray-500">
         <p>© 2026 공부 도우미</p>
       </footer>
     </div>

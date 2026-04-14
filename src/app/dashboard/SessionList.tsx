@@ -251,7 +251,7 @@ export default function SessionList() {
       {/* Session list */}
       {filteredSessions.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-400">{t.subNoneInCategory}</p>
+          <p className="text-gray-500">{t.subNoneInCategory}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -271,9 +271,9 @@ export default function SessionList() {
                         {subject.name}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400 px-2 py-0.5 rounded-full bg-gray-50">{t.subUncategorized}</span>
+                      <span className="text-xs text-gray-600 px-2 py-0.5 rounded-full bg-gray-100">{t.subUncategorized}</span>
                     )}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {s.page_count} {t.dashPages} · {s.word_count.toLocaleString()} {t.dashWords} ·{' '}
                       {new Date(s.created_at).toLocaleDateString('ko-KR')}
                     </span>

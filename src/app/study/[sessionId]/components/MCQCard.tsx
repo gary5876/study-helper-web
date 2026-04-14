@@ -63,14 +63,14 @@ export default function MCQCard({ question: q, current, total, onAnswer, onNext,
     }
     if (opt === q.correct_answer) return `${base} border-green-400 bg-green-50 text-green-800`
     if (opt === selected) return `${base} border-red-400 bg-red-50 text-red-800`
-    return `${base} border-gray-100 bg-gray-50 text-gray-500 opacity-70`
+    return `${base} border-gray-200 bg-gray-50 text-gray-600`
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col gap-4 shadow-sm">
+    <div className="bg-white text-gray-900 rounded-2xl border border-gray-100 p-5 flex flex-col gap-4 shadow-sm">
       {/* Progress + badges */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-gray-400 font-medium">{current} / {total}</span>
+        <span className="text-xs text-gray-600 font-medium">{current} / {total}</span>
         <div className="flex gap-2">
           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${levelStyle}`}>
             Lv.{q.level}
