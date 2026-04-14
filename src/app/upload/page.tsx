@@ -146,17 +146,19 @@ export default function UploadPage() {
         body: JSON.stringify({ session_id: sid, plan, options: { model } }),
       })
 
-      await pollStatus(sid)
+      await pollStatus(sid, session?.access_token)
     } catch (e: unknown) {
       setErrorMsg(e instanceof Error ? e.message : '오류가 발생했습니다')
       setStage('error')
     }
   }
 
-  async function pollStatus(sid: string) {
+  async function pollStatus(sid: string, accessToken?: string) {
     while (true) {
       await new Promise(r => setTimeout(r, 2000))
-      const res = await fetch(`${BACKEND_URL}/status/${sid}`)
+      const res = await fetch(`${BACKEND_URL}/status/${sid}`, {
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      })
       if (!res.ok) continue
       const data = await res.json()
       setProgress(data.progress_pct ?? 0)

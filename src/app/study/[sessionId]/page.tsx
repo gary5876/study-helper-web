@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n'
+import { createClient } from '@/lib/supabase/client'
 import ModeSelect, { StudyMode } from './components/ModeSelect'
 import MCQCard, { MCQQuestion } from './components/MCQCard'
 import FillCard, { FillQuestion } from './components/FillCard'
@@ -59,7 +60,11 @@ export default function StudyPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${BACKEND_URL}/result/${sessionId}`)
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        const res = await fetch(`${BACKEND_URL}/result/${sessionId}`, {
+          headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+        })
         if (!res.ok) throw new Error(`서버 오류: ${res.status}`)
         const data: StudyContent = await res.json()
         setContent(data)
