@@ -19,6 +19,15 @@ function LoginForm() {
 
   const supabase = createClient()
 
+  function friendlyError(err: { message: string }): string {
+    const msg = err.message.toLowerCase()
+    if (msg.includes('invalid login')) return '이메일 또는 비밀번호가 올바르지 않습니다.'
+    if (msg.includes('email not confirmed')) return '이메일 인증이 필요합니다. 받은 편지함을 확인해주세요.'
+    if (msg.includes('rate limit')) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+    if (msg.includes('already registered')) return '이미 등록된 이메일입니다.'
+    return '처리에 실패했습니다. 다시 시도해주세요.'
+  }
+
   async function handleEmailAuth(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
@@ -27,7 +36,7 @@ function LoginForm() {
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        setMessage(error.message)
+        setMessage(friendlyError(error))
       } else {
         router.push('/dashboard')
         router.refresh()
@@ -39,7 +48,7 @@ function LoginForm() {
         options: { emailRedirectTo: `${location.origin}/auth/callback` },
       })
       if (error) {
-        setMessage(error.message)
+        setMessage(friendlyError(error))
       } else {
         setMessage('확인 이메일을 발송했습니다. 받은 편지함을 확인해주세요.')
       }
