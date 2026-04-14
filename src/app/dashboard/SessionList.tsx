@@ -61,6 +61,20 @@ export default function SessionList() {
   }, [])
 
   useEffect(() => {
+    let cancelled = false
+
+    async function fetchSessions() {
+      const token = await getToken()
+      if (!token) return null
+      try {
+        const res = await fetch(`${BACKEND_URL}/user/sessions`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) return (await res.json()) as Session[]
+      } catch { /* ignore */ }
+      return null
+    }
+
     async function load() {
       const token = await getToken()
       if (!token) { setLoading(false); return }
@@ -70,14 +84,27 @@ export default function SessionList() {
           fetch(`${BACKEND_URL}/user/sessions`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${BACKEND_URL}/user/subjects`, { headers: { Authorization: `Bearer ${token}` } }),
         ])
-        if (sessRes.ok) setSessions(await sessRes.json())
-        if (subjRes.ok) setSubjects(await subjRes.json())
+        if (sessRes.ok && !cancelled) setSessions(await sessRes.json())
+        if (subjRes.ok && !cancelled) setSubjects(await subjRes.json())
       } catch {
         // 백엔드 연결 실패 시 빈 목록
       }
-      setLoading(false)
+      if (!cancelled) setLoading(false)
     }
     load()
+
+    // pending/processing 세션이 있으면 3초마다 폴링
+    const interval = setInterval(async () => {
+      if (cancelled) return
+      const fresh = await fetchSessions()
+      if (!fresh || cancelled) return
+      setSessions(fresh)
+      if (!fresh.some(s => s.status === 'pending' || s.status === 'processing')) {
+        clearInterval(interval)
+      }
+    }, 3000)
+
+    return () => { cancelled = true; clearInterval(interval) }
   }, [getToken])
 
   const filteredSessions = useMemo(() => {
