@@ -3,6 +3,7 @@ import Link from 'next/link'
 import LogoutButton from './LogoutButton'
 import SessionList from './SessionList'
 import SetupBanner from './SetupBanner'
+import DueReviews from './DueReviews'
 import LangToggle from './LangToggle'
 import ThemeToggle from './ThemeToggle'
 
@@ -28,6 +29,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-8">
         <SetupBanner />
+        <DueReviews />
 
         {/* 상단 액션 */}
         <div className="flex items-center justify-between mb-6">

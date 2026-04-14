@@ -5,6 +5,9 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getPlan, getApiKey, getModel } from '@/lib/apiSettings'
+import { useLang } from '@/lib/i18n'
+
+const CONSENT_KEY = 'sh_upload_consent_v1'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? ''
 
@@ -13,6 +16,7 @@ type Stage = 'idle' | 'subject_select' | 'uploading' | 'generating' | 'done' | '
 
 export default function UploadPage() {
   const router = useRouter()
+  const { t } = useLang()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [stage, setStage] = useState<Stage>('idle')
   const [progress, setProgress] = useState(0)
@@ -24,11 +28,15 @@ export default function UploadPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null)
   const [showNewSubject, setShowNewSubject] = useState(false)
   const [newSubjectName, setNewSubjectName] = useState('')
+  const [showConsent, setShowConsent] = useState(false)
 
   useEffect(() => {
     if (!getPlan() || !getApiKey()) {
       router.replace('/setup')
       return
+    }
+    if (typeof window !== 'undefined' && !localStorage.getItem(CONSENT_KEY)) {
+      setShowConsent(true)
     }
     // Load subjects
     async function loadSubjects() {
@@ -56,8 +64,23 @@ export default function UploadPage() {
       setStage('error')
       return
     }
+    if (typeof window !== 'undefined' && !localStorage.getItem(CONSENT_KEY)) {
+      setPendingFile(file)
+      setShowConsent(true)
+      return
+    }
     setPendingFile(file)
     setStage('subject_select')
+  }
+
+  function handleConsentAgree() {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CONSENT_KEY, new Date().toISOString())
+    }
+    setShowConsent(false)
+    if (pendingFile) {
+      setStage('subject_select')
+    }
   }
 
   async function handleConfirmSubject() {
@@ -360,6 +383,49 @@ export default function UploadPage() {
           </div>
         )}
       </main>
+
+      {/* 업로드 동의 모달 — 최초 1회 */}
+      {showConsent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white text-gray-900 rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-xl">
+            <div className="px-6 py-5 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t.consentTitle}</h2>
+            </div>
+            <div className="px-6 py-4 overflow-y-auto space-y-4 text-sm">
+              <div>
+                <p className="font-semibold text-indigo-700 mb-1">{t.consentPdfTitle}</p>
+                <p className="text-gray-700 leading-relaxed">{t.consentPdfBody}</p>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <p className="font-semibold text-indigo-700 mb-1">{t.consentShareTitle}</p>
+                <p className="text-gray-700 leading-relaxed">{t.consentShareBody}</p>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <p className="font-semibold text-indigo-700 mb-1">{t.consentKeyTitle}</p>
+                <p className="text-gray-700 leading-relaxed">{t.consentKeyBody}</p>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <p className="font-semibold text-indigo-700 mb-1">{t.consentCopyrightTitle}</p>
+                <p className="text-gray-700 leading-relaxed">{t.consentCopyrightBody}</p>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                onClick={() => { setShowConsent(false); setPendingFile(null) }}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+              >
+                {t.cancel}
+              </button>
+              <button
+                onClick={handleConsentAgree}
+                className="px-5 py-2 text-sm bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                {t.consentAgree}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

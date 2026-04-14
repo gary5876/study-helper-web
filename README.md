@@ -31,6 +31,10 @@ PDF 업로드·AI 콘텐츠 생성·대시보드·학습 퀴즈 기능을 제공
 - [x] **저대비 텍스트 & 다크 모드 가독성 개선** — `text-gray-400` 대부분을 `gray-500~600`으로 상향, `globals.css` `.dark` body 변수 오버라이드 제거, `theme.tsx`에서 `.dark` 클래스 적용 중단(다크 모드 반쪽 구현 잠정 해체), 학습/문제 카드 루트에 `text-gray-900` 명시로 body 색 상속 차단
 - [x] **대시보드 세션 상태 3초 폴링** — `SessionList.tsx`가 pending/processing 세션이 있는 동안 `/user/sessions`를 3초 간격으로 재조회, 모두 종결되면 자동 중단. `READY_STATUSES = {ready, complete}` 둘 다 "학습하기" 링크 노출
 - [x] **백엔드 세션 ID 단일화 연동** — 백엔드 `/upload`가 `user_sessions` 행을 upsert하고 `/generate` 완료 시 `ready` 상태로 동기화하므로, 대시보드가 정상적으로 `pending → ready` 전환을 보여주고 `/study/${s.id}` 라우트도 메모리 store와 일치하는 id로 라우팅
+- [x] **"오늘 복습" 배너** — `dashboard/DueReviews.tsx`가 `/user/review-schedule` + `/user/sessions`를 병렬 조회해 due 항목을 세션별로 group-by 후 대시보드 상단에 카드로 렌더, 세션별 "복습하기" 링크 제공
+- [x] **업로드 동의 모달** — `/upload` 페이지 최초 진입 시 PDF 외부 전송·문제은행 공유·API 키 처리·저작권 준수 4항목 고지를 1회 표시, `localStorage['sh_upload_consent_v1']`로 동의 상태 저장 (모바일 UploadScreen과 동일 카피)
+- [x] **세션 삭제 UI** — `SessionList` 각 카드에 🗑 버튼, 확인 후 `DELETE /user/sessions/{id}` 호출로 서버 + 로컬 state 동시 제거
+- [x] **상태 라벨 정리** — `STATUS_LABEL`/`STATUS_COLOR`에서 도달 불가능한 `processing`·`complete` 제거하고 `pending/ready/failed` 3종으로 축소, `READY_STATUSES = {ready}` 단일화
 
 ### 무료 플랜 UI 일시 숨김
 

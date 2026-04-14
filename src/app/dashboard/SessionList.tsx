@@ -28,22 +28,18 @@ function useStatusLabel() {
   const { t } = useLang()
   return {
     pending: t.dashStatusPending,
-    processing: t.dashStatusProcessing,
     ready: t.dashStatusComplete,
-    complete: t.dashStatusComplete,
     failed: t.dashStatusFailed,
   } as Record<string, string>
 }
 
 const STATUS_COLOR: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-700',
-  processing: 'bg-yellow-100 text-yellow-700',
   ready: 'bg-green-100 text-green-700',
-  complete: 'bg-green-100 text-green-700',
   failed: 'bg-red-100 text-red-600',
 }
 
-const READY_STATUSES = new Set(['ready', 'complete'])
+const READY_STATUSES = new Set(['ready'])
 
 const UNCATEGORIZED = '__uncategorized__'
 
@@ -103,10 +99,10 @@ export default function SessionList() {
       const fresh = await fetchSessions()
       if (!fresh || cancelled) return
       setSessions(fresh)
-      if (!fresh.some(s => s.status === 'pending' || s.status === 'processing')) {
+      if (!fresh.some(s => s.status === 'pending')) {
         clearInterval(interval)
       }
-      // ready/complete/failed 이면 폴링 종료 조건 만족
+      // ready/failed 이면 폴링 종료 조건 만족
     }, 3000)
 
     return () => { cancelled = true; clearInterval(interval) }
@@ -159,6 +155,21 @@ export default function SessionList() {
         setSubjects(prev => prev.filter(s => s.id !== id))
         setSessions(prev => prev.map(s => s.subject_id === id ? { ...s, subject_id: null } : s))
         if (selectedTab === id) setSelectedTab(null)
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function handleDeleteSession(id: string) {
+    if (!confirm(t.dashDeleteConfirm)) return
+    const token = await getToken()
+    if (!token) return
+    try {
+      const res = await fetch(`${BACKEND_URL}/user/sessions/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok || res.status === 204) {
+        setSessions(prev => prev.filter(s => s.id !== id))
       }
     } catch { /* ignore */ }
   }
@@ -323,6 +334,14 @@ export default function SessionList() {
                       {t.dashStudy}
                     </Link>
                   )}
+                  <button
+                    onClick={() => handleDeleteSession(s.id)}
+                    className="text-xs text-gray-400 hover:text-red-600 transition-colors p-1"
+                    title={t.dashDelete}
+                    aria-label={t.dashDelete}
+                  >
+                    🗑
+                  </button>
                 </div>
               </div>
             )
