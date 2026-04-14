@@ -316,14 +316,12 @@ export default function UploadPage() {
             <div className="text-5xl mb-4">✅</div>
             <p className="font-medium text-gray-800 mb-6">학습 자료가 생성됐습니다!</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a
-                href={`${BACKEND_URL}/result/${sessionId}`}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href={`/study/${sessionId}`}
                 className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors"
               >
                 결과 보기
-              </a>
+              </Link>
               <button
                 onClick={() => { setStage('idle'); setSessionId(''); setProgress(0) }}
                 className="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
