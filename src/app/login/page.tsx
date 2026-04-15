@@ -16,6 +16,7 @@ function LoginForm() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [agreed, setAgreed] = useState(false)
 
   const supabase = createClient()
 
@@ -42,10 +43,18 @@ function LoginForm() {
         router.refresh()
       }
     } else {
+      if (!agreed) {
+        setMessage('약관에 동의해 주세요.')
+        setLoading(false)
+        return
+      }
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: `${location.origin}/auth/callback` },
+        options: {
+          emailRedirectTo: `${location.origin}/auth/callback`,
+          data: { terms_accepted_at: new Date().toISOString() },
+        },
       })
       if (error) {
         setMessage(friendlyError(error))
@@ -57,6 +66,10 @@ function LoginForm() {
   }
 
   async function handleGoogle() {
+    if (mode === 'signup' && !agreed) {
+      setMessage('약관에 동의해 주세요.')
+      return
+    }
     setLoading(true)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -83,10 +96,33 @@ function LoginForm() {
             </div>
           )}
 
+          {mode === 'signup' && (
+            <div className="mb-4">
+              <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={e => setAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <span>
+                  가입하면 생성된 학습 자료가 서비스 품질 개선에 활용될 수 있음에 동의합니다.{' '}
+                  <details className="inline">
+                    <summary className="inline cursor-pointer text-indigo-600 hover:underline">자세히</summary>
+                    <span className="block mt-1 text-gray-500">
+                      동일한 PDF로 생성된 학습 자료(문제·노트)는 공용 저장소에 보관되어, 같은 파일을 업로드한 다른 사용자에게 재사용될 수 있습니다. 자세한 내용은{' '}
+                      <Link href="/privacy" className="text-indigo-600 hover:underline">개인정보처리방침</Link>을 참고해 주세요.
+                    </span>
+                  </details>
+                </span>
+              </label>
+            </div>
+          )}
+
           {/* Google OAuth */}
           <button
             onClick={handleGoogle}
-            disabled={loading}
+            disabled={loading || (mode === 'signup' && !agreed)}
             className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -138,7 +174,7 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (mode === 'signup' && !agreed)}
               className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
             >
               {loading ? '처리 중...' : mode === 'login' ? '로그인' : '회원가입'}
@@ -148,7 +184,7 @@ function LoginForm() {
           <p className="mt-6 text-center text-sm text-gray-500">
             {mode === 'login' ? '계정이 없으신가요? ' : '이미 계정이 있으신가요? '}
             <button
-              onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setMessage('') }}
+              onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setMessage(''); setAgreed(false) }}
               className="text-indigo-600 font-medium hover:underline"
             >
               {mode === 'login' ? '회원가입' : '로그인'}
