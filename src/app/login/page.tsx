@@ -6,16 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-// Allow only same-origin relative paths (no protocol-relative, no external).
-// Matches the validation in /auth/callback/route.ts.
-const SAFE_NEXT_PATTERN = /^\/[a-zA-Z0-9\-_/]*$/
-
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
-  const rawNext = searchParams.get('next') ?? ''
-  const next = SAFE_NEXT_PATTERN.test(rawNext) ? rawNext : '/dashboard'
 
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
@@ -45,7 +39,7 @@ function LoginForm() {
       if (error) {
         setMessage(friendlyError(error))
       } else {
-        router.push(next)
+        router.push('/dashboard')
         router.refresh()
       }
     } else {
@@ -58,7 +52,7 @@ function LoginForm() {
         email,
         password,
         options: {
-          emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          emailRedirectTo: `${location.origin}/auth/callback`,
           data: { terms_accepted_at: new Date().toISOString() },
         },
       })
@@ -79,7 +73,7 @@ function LoginForm() {
     setLoading(true)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      options: { redirectTo: `${location.origin}/auth/callback` },
     })
   }
 
