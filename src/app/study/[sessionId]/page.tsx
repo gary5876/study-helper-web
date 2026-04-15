@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLang } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
@@ -41,6 +41,7 @@ function filterByMode<T extends { level: number }>(items: T[], mode: StudyMode):
 
 export default function StudyPage() {
   const params = useParams()
+  const router = useRouter()
   const sessionId = params.sessionId as string
   const { t } = useLang()
 
@@ -59,23 +60,64 @@ export default function StudyPage() {
 
   useEffect(() => {
     async function load() {
+      const supabase = createClient()
+
+      // 1) getUser()는 access_token이 만료됐으면 refresh_token으로 자동 갱신을 시도한다.
+      //    getSession()과 달리 캐시된 null을 반환하지 않는다.
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      if (userError || !user) {
+        router.replace(`/login?next=${encodeURIComponent(`/study/${sessionId}`)}`)
+        return
+      }
+
+      // 2) 갱신된 세션에서 access_token을 다시 꺼낸다.
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        router.replace(`/login?next=${encodeURIComponent(`/study/${sessionId}`)}`)
+        return
+      }
+
       try {
-        const supabase = createClient()
-        const { data: { session } } = await supabase.auth.getSession()
         const res = await fetch(`${BACKEND_URL}/result/${sessionId}`, {
-          headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+          headers: { Authorization: `Bearer ${session.access_token}` },
         })
-        if (!res.ok) throw new Error(`서버 오류: ${res.status}`)
-        const data: StudyContent = await res.json()
-        setContent(data)
-        setPhase(data.notes ? 'notes' : 'modeSelect')
+
+        if (res.ok) {
+          const data: StudyContent = await res.json()
+          setContent(data)
+          setPhase(data.notes ? 'notes' : 'modeSelect')
+          return
+        }
+
+        // 상태코드별 사용자 메시지 분기.
+        // 401: 토큰이 서버에서 거절됨 → 재로그인 경로.
+        // 404: primary/fallback 모두 결과 없음 → 재생성 유도.
+        // 500: 파싱 또는 내부 오류 → 재시도 유도.
+        // 202/400/그외: 일반 실패 메시지.
+        if (res.status === 401) {
+          router.replace(`/login?next=${encodeURIComponent(`/study/${sessionId}`)}`)
+          return
+        }
+        let detail = ''
+        try {
+          const body = await res.json()
+          detail = body?.detail ?? ''
+        } catch {}
+        if (res.status === 404) {
+          setErrorMsg(detail || '이 세션의 학습 자료를 찾을 수 없습니다. 다시 생성해 주세요.')
+        } else if (res.status === 500) {
+          setErrorMsg(detail || '결과를 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.')
+        } else {
+          setErrorMsg(detail || `불러오기 실패 (HTTP ${res.status})`)
+        }
+        setPhase('error')
       } catch (e: unknown) {
         setErrorMsg(e instanceof Error ? e.message : '학습 자료를 불러올 수 없습니다.')
         setPhase('error')
       }
     }
     load()
-  }, [sessionId])
+  }, [sessionId, router])
 
   function handleModeSelect(selected: StudyMode) {
     if (!content) return
