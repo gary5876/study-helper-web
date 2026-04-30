@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useLang } from '@/lib/i18n'
@@ -24,43 +24,53 @@ export default function DueReviews() {
   const [grouped, setGrouped] = useState<Record<string, number>>({})
   const [sessionNames, setSessionNames] = useState<Record<string, string>>({})
 
-  const load = useCallback(async () => {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token
-    if (!token) { setLoading(false); return }
+  useEffect(() => {
+    let cancelled = false
 
-    try {
-      const [reviewsRes, sessionsRes] = await Promise.all([
-        fetch(`${BACKEND_URL}/user/review-schedule`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`${BACKEND_URL}/user/sessions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ])
+    ;(async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      if (!token) {
+        if (!cancelled) setLoading(false)
+        return
+      }
 
-      if (reviewsRes.ok) {
-        const items: ReviewItem[] = await reviewsRes.json()
-        const counts: Record<string, number> = {}
-        for (const item of items) {
-          if (item.status === 'done' || item.status === 'mastered') continue
-          counts[item.session_id] = (counts[item.session_id] ?? 0) + 1
+      try {
+        const [reviewsRes, sessionsRes] = await Promise.all([
+          fetch(`${BACKEND_URL}/user/review-schedule`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${BACKEND_URL}/user/sessions`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ])
+
+        if (cancelled) return
+
+        if (reviewsRes.ok) {
+          const items: ReviewItem[] = await reviewsRes.json()
+          const counts: Record<string, number> = {}
+          for (const item of items) {
+            if (item.status === 'done' || item.status === 'mastered') continue
+            counts[item.session_id] = (counts[item.session_id] ?? 0) + 1
+          }
+          if (!cancelled) setGrouped(counts)
         }
-        setGrouped(counts)
-      }
 
-      if (sessionsRes.ok) {
-        const sessions: SessionMeta[] = await sessionsRes.json()
-        const map: Record<string, string> = {}
-        for (const s of sessions) map[s.id] = s.pdf_name
-        setSessionNames(map)
-      }
-    } catch { /* ignore */ }
-    setLoading(false)
+        if (sessionsRes.ok) {
+          const sessions: SessionMeta[] = await sessionsRes.json()
+          const map: Record<string, string> = {}
+          for (const s of sessions) map[s.id] = s.pdf_name
+          if (!cancelled) setSessionNames(map)
+        }
+      } catch { /* ignore */ }
+
+      if (!cancelled) setLoading(false)
+    })()
+
+    return () => { cancelled = true }
   }, [])
-
-  useEffect(() => { load() }, [load])
 
   if (loading) return null
 

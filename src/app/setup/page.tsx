@@ -55,13 +55,15 @@ export default function SetupPage() {
   const [isEditing, setIsEditing] = useState(false)
 
   useEffect(() => {
-    const plan = getPlan()
-    if (plan) {
-      setIsEditing(true)
-      setSelectedPlan(plan)
-      setSelectedModel(getModel(plan))
-      if (getApiKey()) setApiKeySaved(true)
-    }
+    ;(() => {
+      const plan = getPlan()
+      if (plan) {
+        setIsEditing(true)
+        setSelectedPlan(plan)
+        setSelectedModel(getModel(plan))
+        if (getApiKey()) setApiKeySaved(true)
+      }
+    })()
   }, [])
 
   const service = SERVICES.find(s => s.plan === selectedPlan)!
