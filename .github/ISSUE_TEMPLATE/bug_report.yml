@@ -1,0 +1,65 @@
+name: 버그 리포트
+description: 웹 동작 이상·오류·회귀를 보고
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        가능한 한 재현 가능한 형태로 작성해 주세요. 민감 정보(API 키·토큰)는 마스킹.
+  - type: textarea
+    id: summary
+    attributes:
+      label: 증상 요약
+      description: 무엇이 어떻게 잘못되는지 1~3줄
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 재현 절차
+      placeholder: |
+        1. /login에서 Google 로그인
+        2. /dashboard로 이동
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 동작
+      description: 에러 메시지·스크린샷·콘솔/네트워크 탭 로그
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: 브라우저
+      multiple: true
+      options:
+        - Chrome
+        - Safari
+        - Firefox
+        - Edge
+        - 모바일 Chrome
+        - 모바일 Safari
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 환경
+      description: OS / 브라우저 버전 / 배포 환경 (local·preview·production) / 커밋 SHA
+      placeholder: "macOS 14 / Chrome 132 / production / a923b21"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 추가 정보
