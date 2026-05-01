@@ -1,15 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { getPlan, getApiKey } from '@/lib/apiSettings'
 
-export default function SetupBanner() {
-  const [needsSetup, setNeedsSetup] = useState(false)
+function noopSubscribe() {
+  return () => {}
+}
+function getNeedsSetup(): boolean {
+  return !getPlan() || !getApiKey()
+}
+function getNeedsSetupServer(): boolean {
+  return false
+}
 
-  useEffect(() => {
-    setNeedsSetup(!getPlan() || !getApiKey())
-  }, [])
+export default function SetupBanner() {
+  const needsSetup = useSyncExternalStore(noopSubscribe, getNeedsSetup, getNeedsSetupServer)
 
   if (!needsSetup) return null
 

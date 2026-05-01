@@ -1,14 +1,24 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useCallback, useSyncExternalStore, ReactNode } from 'react'
 
 export type Lang = 'ko' | 'en'
 
 const STORAGE_KEY = 'sh_lang'
 
-function getInitialLang(): Lang {
-  if (typeof window === 'undefined') return 'ko'
+const langListeners = new Set<() => void>()
+function subscribeLang(cb: () => void) {
+  langListeners.add(cb)
+  return () => { langListeners.delete(cb) }
+}
+function notifyLang() {
+  langListeners.forEach(l => l())
+}
+function getLangSnapshot(): Lang {
   return (localStorage.getItem(STORAGE_KEY) as Lang) ?? 'ko'
+}
+function getLangServerSnapshot(): Lang {
+  return 'ko'
 }
 
 interface LangContextType {
@@ -20,18 +30,12 @@ interface LangContextType {
 const LangContext = createContext<LangContextType | null>(null)
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('ko')
-
-  useEffect(() => {
-    setLang(getInitialLang())
-  }, [])
+  const lang = useSyncExternalStore(subscribeLang, getLangSnapshot, getLangServerSnapshot)
 
   const toggle = useCallback(() => {
-    setLang(prev => {
-      const next = prev === 'ko' ? 'en' : 'ko'
-      localStorage.setItem(STORAGE_KEY, next)
-      return next
-    })
+    const next: Lang = (localStorage.getItem(STORAGE_KEY) as Lang ?? 'ko') === 'ko' ? 'en' : 'ko'
+    localStorage.setItem(STORAGE_KEY, next)
+    notifyLang()
   }, [])
 
   const t = STRINGS[lang]
