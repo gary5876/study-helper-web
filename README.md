@@ -5,7 +5,14 @@ PDF 업로드·AI 콘텐츠 생성·대시보드·학습 퀴즈 기능을 제공
 
 ---
 
-## 현재 상태 (2026-04-30)
+## 현재 상태 (2026-05-02)
+
+> **2026-05-02** — `develop` 브랜치 Render 배포 준비. `src/app/healthz/route.ts`
+> 신규 — Render Health Check Path `/healthz`에 응답하는 정적 라우트(GET/HEAD,
+> `text/plain "ok"`). Render 환경변수에는 빌드 타임 inline용 `NEXT_PUBLIC_*` 3종
+> (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+> `NEXT_PUBLIC_BACKEND_URL`) 등록 필요. `PORT`는 Render가 자동 주입하므로
+> 직접 설정하지 않음. Build Command는 `npm ci; npm run build` 권장.
 
 > **2026-04-30** — `chore/coderabbit-config` 브랜치에서 CodeRabbit 자동 코드
 > 리뷰 설정 도입. `.coderabbit.yaml` (한국어 리뷰, `src/app`·`src/lib`·
@@ -59,7 +66,7 @@ Gemini API 키 풀 보충 전까지 사용자 진입 경로를 차단합니다.
 | 언어 | TypeScript |
 | 스타일 | Tailwind CSS |
 | 인증 | Supabase Auth |
-| 배포 | Railway (예정) |
+| 배포 | `main` → Vercel · `develop` → Render |
 
 ---
 
@@ -90,6 +97,7 @@ src/app/
 ├── page.tsx              랜딩 페이지
 ├── login/page.tsx        로그인
 ├── upload/page.tsx       PDF 업로드
+├── healthz/route.ts      Render 헬스체크 (GET/HEAD → 200 "ok")
 ├── dashboard/            세션 대시보드
 │   ├── page.tsx
 │   └── SessionList.tsx
