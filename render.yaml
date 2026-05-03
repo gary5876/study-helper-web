@@ -1,0 +1,35 @@
+# Render Blueprint — develop 브랜치 staging 배포
+# Native Node 빌드 대신 Dockerfile 기반으로 통일 (AWS main 과 동일 이미지 빌드 경로)
+#
+# NEXT_PUBLIC_* 는 next build 시점에 client bundle 로 inline 되므로 빌드 ARG 로 주입해야 함.
+# Render envVars 는 런타임에만 주입되므로, 빌드 시점 ARG 는 Render Dashboard 의
+# Service → Settings → Build → "Docker Build Arguments" 에 동일 키로 등록 필요.
+#
+# 등록할 Build Arguments:
+#   - NEXT_PUBLIC_SUPABASE_URL
+#   - NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   - NEXT_PUBLIC_BACKEND_URL  (develop 백엔드 Render URL)
+
+services:
+  - type: web
+    name: study-helper-web
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: develop
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOSTNAME
+        value: 0.0.0.0
+      # PORT 는 Render 가 동적으로 주입 — 수동 설정 금지
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: NEXT_PUBLIC_BACKEND_URL
+        sync: false

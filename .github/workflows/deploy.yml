@@ -1,0 +1,114 @@
+name: Web Deploy
+
+# Triggers only on main push (CI checks live in ci.yml)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  AWS_ROLE_ARN: arn:aws:iam::250847881242:role/github-actions-deploy
+  ECR_REGISTRY: 250847881242.dkr.ecr.ap-northeast-2.amazonaws.com
+  ECR_REPOSITORY: study-helper-web
+  EC2_INSTANCE_ID: i-0ce44df26ad377550
+
+jobs:
+  build-and-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build and push (SHA tag, NEXT_PUBLIC_* baked in)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to EC2 (SSM)
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Trigger deploy via SSM
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          set -e
+          COMMAND_ID=$(aws ssm send-command \
+            --region "${AWS_REGION}" \
+            --instance-ids "${EC2_INSTANCE_ID}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy web ${SHA:0:7}" \
+            --parameters "commands=[\"sudo bash /opt/study-helper-web/deploy/deploy.sh ${SHA}\"]" \
+            --query 'Command.CommandId' --output text)
+          echo "Command ID: $COMMAND_ID"
+          echo "command_id=$COMMAND_ID" >> $GITHUB_ENV
+
+      - name: Wait for SSM command completion
+        run: |
+          set -e
+          for i in $(seq 1 60); do
+            STATUS=$(aws ssm get-command-invocation \
+              --region "${AWS_REGION}" \
+              --command-id "${command_id}" \
+              --instance-id "${EC2_INSTANCE_ID}" \
+              --query 'Status' --output text 2>/dev/null || echo "Pending")
+            echo "[$i] Status: $STATUS"
+            case "$STATUS" in
+              Success)
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${command_id}" \
+                  --instance-id "${EC2_INSTANCE_ID}" \
+                  --query 'StandardOutputContent' --output text
+                exit 0 ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error::Deploy failed: $STATUS"
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${command_id}" \
+                  --instance-id "${EC2_INSTANCE_ID}" \
+                  --query 'StandardOutputContent' --output text
+                aws ssm get-command-invocation \
+                  --region "${AWS_REGION}" \
+                  --command-id "${command_id}" \
+                  --instance-id "${EC2_INSTANCE_ID}" \
+                  --query 'StandardErrorContent' --output text
+                exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "::error::Deploy timed out"
+          exit 1

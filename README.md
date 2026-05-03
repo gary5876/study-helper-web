@@ -5,7 +5,15 @@ PDF 업로드·AI 콘텐츠 생성·대시보드·학습 퀴즈 기능을 제공
 
 ---
 
-## 현재 상태 (2026-05-02)
+## 현재 상태 (2026-05-03)
+
+> **2026-05-03** — `develop` 브랜치 Render 배포를 **Docker runtime** 으로 전환.
+> Native Node 빌드(`npm ci; npm run build`) → 루트 `Dockerfile` 기반 빌드로 통일
+> (AWS main 배포와 동일 이미지 경로). `render.yaml` 신규 — `runtime: docker`,
+> `dockerfilePath: ./Dockerfile`, `healthCheckPath: /healthz`. 빌드 타임 inline 용
+> `NEXT_PUBLIC_*` 3종은 Render envVars 가 아닌 **Dashboard → Settings → Build →
+> Docker Build Arguments** 에 등록해야 함 (Render envVars 는 런타임 전용).
+> `PORT` 는 Render 자동 주입을 그대로 사용.
 
 > **2026-05-02** — `develop` 브랜치 Render 배포 준비. `src/app/healthz/route.ts`
 > 신규 — Render Health Check Path `/healthz`에 응답하는 정적 라우트(GET/HEAD,
@@ -66,7 +74,7 @@ Gemini API 키 풀 보충 전까지 사용자 진입 경로를 차단합니다.
 | 언어 | TypeScript |
 | 스타일 | Tailwind CSS |
 | 인증 | Supabase Auth |
-| 배포 | `main` → Vercel · `develop` → Render |
+| 배포 | `main` → AWS (ECR + EC2, Docker) · `develop` → Render (Docker) |
 
 ---
 
