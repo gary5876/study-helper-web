@@ -14,7 +14,11 @@ if [ ! -f .env.prod ]; then
   echo "ERROR: .env.prod not found at $(pwd). Bootstrap it from .env.prod.example first." >&2
   exit 2
 fi
-sudo sed -i "s|^IMAGE=.*|IMAGE=${IMAGE}|" .env.prod
+if grep -q '^IMAGE=' .env.prod; then
+  sudo sed -i "s|^IMAGE=.*|IMAGE=${IMAGE}|" .env.prod
+else
+  echo "IMAGE=${IMAGE}" | sudo tee -a .env.prod >/dev/null
+fi
 
 echo "[2/4] ECR login"
 aws ecr get-login-password --region ap-northeast-2 \
