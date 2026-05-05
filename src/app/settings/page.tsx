@@ -59,16 +59,20 @@ export default function SettingsPage() {
   const [aiSaved, setAiSaved] = useState(false)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       if (user?.email) setEmail(user.email)
-    })
-    const plan = getPlan()
-    if (plan) {
-      setSelectedPlan(plan)
-      setSelectedModel(getModel(plan))
-      if (getApiKey()) setApiKeySaved(true)
-    }
-  }, [])
+    })()
+
+    ;(() => {
+      const plan = getPlan()
+      if (plan) {
+        setSelectedPlan(plan)
+        setSelectedModel(getModel(plan))
+        if (getApiKey()) setApiKeySaved(true)
+      }
+    })()
+  }, [supabase.auth])
 
   const service = SERVICES.find(s => s.plan === selectedPlan)!
 

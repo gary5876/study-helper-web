@@ -5,9 +5,31 @@ PDF 업로드·AI 콘텐츠 생성·대시보드·학습 퀴즈 기능을 제공
 
 ---
 
-## 현재 상태 (2026-04-14)
+## 현재 상태 (2026-05-03)
 
-### 완성된 기능
+> **2026-05-03** — `develop` 브랜치 Render 배포를 **Docker runtime** 으로 전환.
+> Native Node 빌드(`npm ci; npm run build`) → 루트 `Dockerfile` 기반 빌드로 통일
+> (AWS main 배포와 동일 이미지 경로). `render.yaml` 신규 — `runtime: docker`,
+> `dockerfilePath: ./Dockerfile`, `healthCheckPath: /healthz`. 빌드 타임 inline 용
+> `NEXT_PUBLIC_*` 3종은 Render envVars 가 아닌 **Dashboard → Settings → Build →
+> Docker Build Arguments** 에 등록해야 함 (Render envVars 는 런타임 전용).
+> `PORT` 는 Render 자동 주입을 그대로 사용.
+
+> **2026-05-02** — `develop` 브랜치 Render 배포 준비. `src/app/healthz/route.ts`
+> 신규 — Render Health Check Path `/healthz`에 응답하는 정적 라우트(GET/HEAD,
+> `text/plain "ok"`). Render 환경변수에는 빌드 타임 inline용 `NEXT_PUBLIC_*` 3종
+> (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+> `NEXT_PUBLIC_BACKEND_URL`) 등록 필요. `PORT`는 Render가 자동 주입하므로
+> 직접 설정하지 않음. Build Command는 `npm ci; npm run build` 권장.
+
+> **2026-04-30** — `chore/coderabbit-config` 브랜치에서 CodeRabbit 자동 코드
+> 리뷰 설정 도입. `.coderabbit.yaml` (한국어 리뷰, `src/app`·`src/lib`·
+> `src/proxy.ts`·`next.config.ts` 별 path 지침). 핵심 가드: `"use client"`
+> 위치 검토, 캐시 정책, Authorization 헤더 일관성, NEXT_PUBLIC_* 누설 차단,
+> 오픈 리다이렉트 화이트리스트. 상세:
+> `../documents/record_progress/2026-04-30-01-coderabbit-도입.md`.
+
+### 2026-04-14 완성 기능
 
 - [x] **랜딩 페이지** (`/`) — 서비스 소개, 기능 안내, 플랜 안내, CTA (로그인 유도)
 - [x] **로그인 페이지** (`/login`) — Supabase Auth 기반 이메일/소셜 로그인
@@ -52,7 +74,7 @@ Gemini API 키 풀 보충 전까지 사용자 진입 경로를 차단합니다.
 | 언어 | TypeScript |
 | 스타일 | Tailwind CSS |
 | 인증 | Supabase Auth |
-| 배포 | Railway (예정) |
+| 배포 | `main` → AWS (ECR + EC2, Docker) · `develop` → Render (Docker) |
 
 ---
 
@@ -83,6 +105,7 @@ src/app/
 ├── page.tsx              랜딩 페이지
 ├── login/page.tsx        로그인
 ├── upload/page.tsx       PDF 업로드
+├── healthz/route.ts      Render 헬스체크 (GET/HEAD → 200 "ok")
 ├── dashboard/            세션 대시보드
 │   ├── page.tsx
 │   └── SessionList.tsx
